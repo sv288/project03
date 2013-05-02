@@ -1,0 +1,18 @@
+This is an example created by Ying Zhan
+
+* exampleSNFS contains the exmaple for basic usage of FUSE and Socket programming
+
+* assume server has two files, file01 and file02. In reality, the files should be dynamically  added or deleted
+
+* only open,read,getattr and readdir are initially implemented for illustrction purpose 
+
+* How to run example:
+	1. Copy exampleSNFS and snfs to any iLab machine
+	2. Run Server: nohup ./exampleSNFS/fuse_rpc_example_server &
+	3. Run Client: ./exampleSNFS/fuse_rpc_example_client ./snfs
+    4. Run apps:
+		ls ./snfs
+		cat ./snfs/file01
+    	cat ./snfs/file02
+	5. fusermount -u ./snfs
+
