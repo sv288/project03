@@ -137,21 +137,24 @@ void* request_handler(void* socket)
 	switch(i) 
 	{
 		case  1: handle_getattr(sock);
-		/*
-		case  2: handle_readdir(sock, buf);
+		//case  2: handle_readdir(sock);
 		case  3: handle_open(sock);
-		case  4: handle_read(sock, buf);
-		case  5: handle_write(sock);
-		case  6: handle_create(sock);
-		case  7: handle_mkdir(sock);
-		case  8: handle_releasedir(sock);
-		case  9: handle_opendir(sock);
+		//case  4: handle_read(sock);
+		//case  5: handle_write(sock);
+		//case  6: handle_create(sock);
+		//case  7: handle_mkdir(sock);
+		//case  8: handle_releasedir(sock);
+		//case  9: handle_opendir(sock);
 		case 10: handle_truncate(sock);
-		case 11: handle_close(sock);
-		*/
+		//case 11: handle_close(sock);
 	}
 }
 
+/* 
+ * DS
+ * FINISHED
+ * NOT TESTED
+ */
 void handle_getattr(int sock)
 {
 	int result;
@@ -159,16 +162,20 @@ void handle_getattr(int sock)
 	char[sizeof(int) + sizeof(nlink_t) + sizeof(mode_t) + sizeof(off_t)] toSend;
 	struct stat stbuf;
 
+	/* Receive/Unmarshall Pathsize */
 	int pathsize;
 	recv(sock, &pathsize, sizeof(int), 0);
 	pathsize = ntohl(pathsize);
 
+	/* Receive Path */
 	char* path;
 	recv(sock, path, pathsize, 0);
 
+	/* Making system Call */
 	result = lstat(path, stbuf);
-	result = htonl(result);
 	
+	/* Marshalling Response to Client */
+	result = htonl(result);	
 	nlink_t nlink = stbuf->st_nlink;
 	nlink = htonl(nlink);
 	mode_t mode = stbuf->st_mode;
@@ -181,33 +188,123 @@ void handle_getattr(int sock)
 	memcpy(toSend + sizeof(int) + sizeof(nlink_t), &mode, sizeof(mode_t));
 	memcpy(toSend + sizeof(int) + sizeof(nlink_t) + sizeof(mode_t), &off_t, sizeof(off_t));
 
+	/* Sending Response to Client */
 	send(sock, toSend, sizeof(toSend), 0);
 	
 	return;
 }
 
+void handle_readdir(int sock)
+{
+	/* JONAS CODE HERE */
+}
+
+/* 
+ * DS
+ * FINISHED
+ * NOT TESTED
+ */
 void handle_open(int sock)
 {
 	char* temp;
 	int res;
 	char[sizeof(int)] result;
 
+	/* Receive/Unmarshall Pathsize */
 	int pathsize;
 	recv(sock, &pathsize, sizeof(int), 0);
 	pathsize = ntohl(pathsize);
 
+	/* Receive/Unmarshall fileInfoStruct */
 	struct fuse_file_info* fileInfoStruct;
 	recv(sock, temp, sizeof(struct fuse_file_info), 0);
 	memcpy(fileInfoStruct, temp, sizeof(struct fuse_file_info));
 
+	/* Receive Path */
 	char* path;
 	recv(sock, path, pathsize, 0);
 
+	/* Making System Call */
 	res = open(path, temp->flags);
-	res = htonl(res);
 
+	/* Marshalling Response to Client */
+	res = htonl(res);
 	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
 	send(sock, result, sizeof(int), 0);
 
 	return;
+}
+
+void handle_read(int sock)
+{
+	/* PAUL CODE HERE */
+}
+
+void handle_write(int sock)
+{
+	/* PAUL CODE HERE */
+}
+
+void handle_create(int sock)
+{
+	/* PAUL CODE HERE */
+}
+
+void handle_mkdir(int sock)
+{
+	/* SONU CODE HERE */
+}
+
+void handle_releasedir(int sock)
+{
+	/* JONAS CODE HERE */
+}
+
+void handle_opendir(int sock)
+{
+	/* JONAS CODE HERE */
+}
+
+/* 
+ * DS
+ * FINISHED
+ * NOT TESTED
+ */
+void handle_truncate(int sock)
+{
+	int res;
+	char[sizeof(int)] result;
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive/Unmarshall Offset */
+	off_t offset;
+	recv(sock, @offset, sizeof(off_t), 0);
+	offset = ntohl(offset);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	/* Making System Call */
+	res = truncate(path, offset);
+
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
+
+	return;
+}
+
+void handle_close (int sock)
+{
+	/* SONU CODE HERE */
 }
