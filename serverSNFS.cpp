@@ -106,12 +106,6 @@ int main(int argc, char *argv[])
                         printf("client sock: %d\n", sd_current);
                 }
                 
-                /*
-                struct arguments my_args;
-                my_args.arg1 = sd_current;
-                my_args.arg2 = 
-                */
-                
                 //create thread for every connection
                 // pthread_create(&pthreadClient[counter], NULL, handleClient, (void *)&sd_current);
                  pthread_create(&pthreadClient[counter], NULL, request_handler, (void *)&sd_current); //put function name
@@ -142,11 +136,11 @@ void* request_handler(void* socket)
 		//case  4: handle_read(sock);
 		//case  5: handle_write(sock);
 		//case  6: handle_create(sock);
-		//case  7: handle_mkdir(sock);
+		case  7: handle_mkdir(sock);
 		//case  8: handle_releasedir(sock);
 		//case  9: handle_opendir(sock);
 		case 10: handle_truncate(sock);
-		//case 11: handle_close(sock);
+		case 11: handle_close(sock);
 	}
 }
 
@@ -225,7 +219,7 @@ void handle_open(int sock)
 	recv(sock, path, pathsize, 0);
 
 	/* Making System Call */
-	res = open(path, temp->flags);
+	res = open(path, fileInfoStruct->flags);
 
 	/* Marshalling Response to Client */
 	res = htonl(res);
@@ -249,12 +243,74 @@ void handle_write(int sock)
 
 void handle_create(int sock)
 {
+	//sonu
+	int res;
+	char[sizeof(int)] result;
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, @mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	char structBuffer[struct fuse_file_info)];
+	struct fuse_file_info* ffinfo;
+	
+	recv(sock, structBuffer, struct fuse_file_info), 0)
+	memcpy(ffinfo, structBuffer, sizeof(struct fuse_file_info));
+	
+	/* Making System Call */
+	res = create(path, ffinfo->flags);
+
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
+	
+	
+	//end sonu
 	/* PAUL CODE HERE */
 }
 
 void handle_mkdir(int sock)
 {
-	/* SONU CODE HERE */
+	int res;
+	char[sizeof(int)] result;
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, @mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	/* Making System Call */
+	res = mkdir(path, mode);
+
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
+
 }
 
 void handle_releasedir(int sock)
@@ -306,5 +362,27 @@ void handle_truncate(int sock)
 
 void handle_close (int sock)
 {
-	/* SONU CODE HERE */
+	int res;
+	char[sizeof(int)] result;
+
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	/* Making System Call */
+	res = close(path);
+
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
+
 }
