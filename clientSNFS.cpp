@@ -27,46 +27,62 @@ using namespace std;
 int debug = 1;
 int sock;
 
+/* 
+ * DS
+ * FINISHED
+ * NOT TESTED
+ */
 static int my_getattr(const char* path, struct stat* stbuf)
 {
 	int type = 1;
 	int pathsize = strlen(path) + 1;
-	char* data;
-	//char data[sizeof(int)*2 + pathsize];
+	char data[sizeof(int)*2 + pathsize];
+	
+	/* Marshalling Data */
 	memset(data, 0, sizeof(data));	
 	type = htonl(type);
 	memcpy(&data, &type, sizeof(int));
 	memcpy(&data + sizeof(int)*2, path, pathsize);
 	pathsize = htonl(pathsize);
 	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+	
+	/* Sending Data to Server */
 	send(sock, data, sizeof(data), 0);
+	
+	/* Receiving/Unmarshalling Response */
 	int result;
-	recv(sock, &result, sizeof(int),0);
+	recv(sock, &result, sizeof(int), 0);
 	result = ntohl(result);
 	nlink_t nlink;
-	recv(sock, &nlink, sizeof(nlink_t),0);
+	recv(sock, &nlink, sizeof(nlink_t), 0);
 	nlink = htonl(nlink);
 	mode_t mode;
-	recv(sock, &mode, sizeof(mode_t),0);
+	recv(sock, &mode, sizeof(mode_t), 0);
 	mode = htonl(mode);
 	off_t size;
-	recv(sock, &size, sizeof(off_t),0);
+	recv(sock, &size, sizeof(off_t), 0);
 	size = htonl(size);
 	
+	/* Setting and Returning Values */
 	stbuf->st_nlink = nlink;
 	stbuf->st_mode = mode;
-	stbuf->st_size = size;
-	
+	stbuf->st_size = size;	
 	return result;
 }
 
+/* 
+ * DS
+ * FINISHED
+ * NOT TESTED
+ */
 static int my_open(const char* path, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 3;
 	int pathsize = strlen(path) + 1;
 	int structsize = sizeof(struct fuse_file_info);
-	char* data;
-	//char data[sizeof(int)*2 + pathsize + structsize];
+	char data[sizeof(int)*2 + pathsize + structsize];
+	
+	/* Marshalling Data */
 	memset(data, 0, sizeof(data));	
 	type = htonl(type);
 	memcpy(&data, &type, sizeof(int));
@@ -74,10 +90,49 @@ static int my_open(const char* path, struct fuse_file_info* fileInfoStruct)
 	memcpy(&data + sizeof(int)*2 + structsize, path, pathsize);
 	pathsize = htonl(pathsize);
 	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+	
+	/* Sending Data to Server */
 	send(sock, data, sizeof(data), 0);
+	
+	/* Receiving/Unmarshalling Response */
 	int result;
-	recv(sock, &result, sizeof(int),0);
+	recv(sock, &result, sizeof(int), 0);
 	result = ntohl(result);
+	
+	/* Returning Value */
+	return result;
+}
+
+/* 
+ * DS
+ * FINISHED
+ * NOT TESTED
+ */
+static int my_truncate(const char* path, off_t offset)
+{
+	int type = 10;
+	int pathsize = strlen(path) + 1;
+	
+	/* Marshalling Data */
+	char data[sizeof(int)*2 + pathsize + sizeof(off_t)];
+	memset(data, 0, sizeof(data));
+	type = htonl(type);
+	memcpy(&data, &type, sizeof(int));
+	offset = htonl(offset);
+	memcpy(&data + sizeof(int)*2, &offset, sizeof(off_t));
+	memcpy(&data + sizeof(int)*2 + sizeof(off_t), path, pathsize);
+	pathsize = htonl(pathsize);
+	memcpy(&data + sizeof(int), pathsize, sizeof(int));
+	
+	/* Sending Data to Server */
+	send(sock, data, sizeof(data), 0);
+	
+	/* Receiving/Unmarshalling Response */
+	int result;
+	recv(sock, &result, sizeof(int), 0);
+	result = ntohl(result);
+	
+	/* Returning Value */
 	return result;
 }
 
@@ -87,15 +142,13 @@ static struct my_operations : fuse_operations {
 		getattr		= my_getattr;
 		//readdir		= my_readdir;
 		open		= my_open;
-		/*
-		read		= my_read;
-		write		= my_write;
-		create		= my_create;
-		mkdir		= my_mkdir;
-		releasedir	= my_releasedir;
-		opendir		= my_opendir;
+		//read		= my_read;
+		//write		= my_write;
+		//create		= my_create;
+		//mkdir		= my_mkdir;
+		//releasedir	= my_releasedir;
+		//opendir		= my_opendir;
 		truncate	= my_truncate;
-		*/
 	}
 } my_oper;
 
