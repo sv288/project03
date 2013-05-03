@@ -70,6 +70,12 @@ static int my_getattr(const char* path, struct stat* stbuf)
 	return result;
 }
 
+static int my_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 2;
+	/* JONAS CODE */
+}
+
 /* 
  * DS
  * FINISHED
@@ -101,6 +107,42 @@ static int my_open(const char* path, struct fuse_file_info* fileInfoStruct)
 	
 	/* Returning Value */
 	return result;
+}
+
+static int my_read(const char *path, char* buf, size_t size, off_t offset, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 4;
+	/* PAUL CODE */
+}
+
+static int my_write(const char* path, const char* towrite, size_t size, off_t offset, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 5;
+	/* PAUL CODE */
+}
+
+static int my_create(const char* path, mode_t mode, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 6;
+	/* PAUL CODE */
+}
+
+static int my_mkdir(const char* path, mode_t mode)
+{
+	int type = 7;
+	/* SONU CODE */
+}
+
+static int my_releasedir(const char* path, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 8;
+	/* JONAS CODE */
+}
+
+static int my_opendir(const char* path, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 9;
+	/* JONAS CODE */
 }
 
 /* 
@@ -136,6 +178,12 @@ static int my_truncate(const char* path, off_t offset)
 	return result;
 }
 
+static int my_close(const char* path)
+{
+	int type = 11;
+	/* SONU CODE */
+}
+
 
 static struct my_operations : fuse_operations {
 	my_operations() {
@@ -149,6 +197,7 @@ static struct my_operations : fuse_operations {
 		//releasedir	= my_releasedir;
 		//opendir		= my_opendir;
 		truncate	= my_truncate;
+		//close		=my_close;
 	}
 } my_oper;
 
