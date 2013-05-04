@@ -339,7 +339,7 @@ static struct my_operations : fuse_operations {
 		open		= my_open;
 		//read		= my_read;
 		//write		= my_write;
-		//create		= my_create;
+		create		= my_create;
 		mkdir		= my_mkdir;
 		releasedir	= my_releasedir;
 		opendir		= my_opendir;
