@@ -133,15 +133,84 @@ static int my_open(const char* path, struct fuse_file_info* fileInfoStruct)
 	return result;
 }
 
+/*
 static int my_read(const char *path, char* buf, size_t size, off_t offset, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 4;
+	// PAUL CODE 
+}
+
+static int my_write(const char* path, const char* towrite, size_t size, off_t offset, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 5;
+	// PAUL CODE 
+}
+*/
+
+static int my_read(const char *path, char* buf, size_t size, off_t offset, struct fuse_file_info* fileInfoStruct)
+{
+	int type = 4;
+	int pathsize = strlen(path) + 1;
+	int structsize = sizeof(struct fuse_file_info);
+	char data[sizeof(int)*2 + sizeof(size_t) + sizeof(off_t) + structsize + strlen(path)+1];
+	
+	/* Marshalling Data */
+	memset(data, 0, sizeof(data));
+	type = htonl(type);
+	memcpy(&data, &type, sizeof(int));
+	size = htonl(size);
+	memcpy(&data + sizeof(int)*2, &size, sizeof(size_t);
+	offset = htonl(offset);
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t), &offset, sizeof(off_t));
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t) + sizeof(off_t), fileInfoStruct, structsize);
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t) + sizeof(off_t) + structsize, path, pathsize);
+	pathsize = htonl(pathsize);
+	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+
+	/* Sending Data to Server */
+	send(sock, data, sizeof(data), 0);
+		   
+	/* Receiving/Unmarshalling Response */
+	int result;
+	recv(sock, &result, sizeof(int), 0);
+	result = ntohl(result);
+		   
+	/* Returning Value */
+	return result;
 	/* PAUL CODE */
 }
 
 static int my_write(const char* path, const char* towrite, size_t size, off_t offset, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 5;
+	int pathsize = strlen(path) + 1;
+	int structsize = sizeof(struct fuse_file_info);
+	
+	/* Marshalling Data */
+	char data[sizeof(int)*2 + sizeof(size_t) + sizeof(off_t) + structsize + pathsize];
+	memset(data, 0, sizeof(data));
+	type = htonl(type);
+	memcpy(&data, &type, sizeof(int));
+	size = htonl(size);
+	memcpy(&data + sizeof(int)*2, &size, sizeof(size_t));
+	offset = htonl(offset);
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t), &offset, sizeof(off_t));
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t) + sizeof(off_t), fileInfoStruct, structsize);
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t) + sizeof(off_t) + structsize, path, pathsize);
+	memcpy(&data + sizeof(int)*2 + sizeof(size_t) + sizeof(off_t) + structsize + pathsize, towrite, (int)size);
+	pathsize = htonl(pathsize);
+	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+
+	/* Sending Data to Server */
+	send(sock, data, sizeof(data), 0);
+		   
+	/* Receiving/Unmarshalling Response */
+	int result;
+	recv(sock, &result, sizeof(int), 0);
+	result = ntohl(result);
+		   
+	/* Returning Value */
+	return result;
 	/* PAUL CODE */
 }
 
