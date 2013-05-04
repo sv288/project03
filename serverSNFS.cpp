@@ -269,16 +269,116 @@ void handle_open(int sock)
 
 	return;
 }
+/*
+void handle_read(int sock)
+{
+	// PAUL CODE HERE 
+}
+
+void handle_write(int sock)
+{
+	// PAUL CODE HERE 
+}
+*/
+
+
 
 void handle_read(int sock)
 {
 	/* PAUL CODE HERE */
+	int res;
+	char[1024] buf;
+	char[sizeof(int)] result;
+	
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+	
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, &mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+	
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	/* Receive fuse_file_info */
+	char structBuffer[struct fuse_file_info)];
+	struct fuse_file_info* ffinfo;
+	
+	/* Receive size to read */
+	size_t count;
+	recv(sock, &count, sizeof(size_t), 0)
+	
+	
+	
+	//Call open?
+	int fd = open(path, fileInfoStruct->flags);
+	
+	/* Making System Call */
+	res = read(fd, buf, count);
+	
+	
+	
+	
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
 }
 
 void handle_write(int sock)
 {
 	/* PAUL CODE HERE */
+	int res;
+	char[1024] buf;
+	char[sizeof(int)] result;
+	
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+	
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, &mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+	
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	/* Receive fuse_file_info */
+	char structBuffer[struct fuse_file_info)];
+	struct fuse_file_info* ffinfo;
+	
+	/* Receive size to write */
+	size_t count;
+	recv(sock, &count, sizeof(size_t), 0)
+	
+	
+	
+	//Call open?
+	int fd = open(path, fileInfoStruct->flags);
+	
+	/* Making System Call */
+	res = write(fd, buf, count);
+	
+	
+	
+	
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
 }
+
 
 void handle_create(int sock)
 {
