@@ -142,7 +142,7 @@ void* request_handler(void* socket)
 		case  3: handle_open(sock);
 		//case  4: handle_read(sock);
 		//case  5: handle_write(sock);
-		//case  6: handle_create(sock);
+		case  6: handle_create(sock);
 		case  7: handle_mkdir(sock);
 		case  8: handle_releasedir(sock);
 		case  9: handle_opendir(sock);
@@ -314,11 +314,9 @@ void handle_create(int sock)
 	memcpy(result, &res, sizeof(int));
 	
 	/* Sending Response to Client */
-	send(sock, result, sizeof(int), 0);
-	
+	send(sock, result, sizeof(int), 0);	
 	
 	//end sonu
-	/* PAUL CODE HERE */
 }
 
 void handle_mkdir(int sock)
