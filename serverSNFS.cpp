@@ -25,16 +25,8 @@
 
 using namespace std;
 
-
+DIR *currentDirectory; //This should be declared here because it is going to vary during runtime 
 int debug = 1;	 //if 1 it'll show output msgs surrounded by if(debug), for troubleshooting
-//void* handleClient(void* sockfd);
-//declare your function here
-
-/*
-struct arguments {
-	int arg1;
-	char* arg2;
-};*/
 
 int main(int argc, char *argv[])
 {
@@ -190,8 +182,33 @@ void handle_getattr(int sock)
 
 void handle_readdir(int sock)
 {
-	/* JONAS CODE HERE */
+	int res;
+	char[sizeof(int)] result;
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, @mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+
+	/* Make System Call */
+	DIR *de
+	de = opendir(path);
+	
+    if (de == NULL)
+        return -errno;
+	
+	return 0;
 }
+
 
 /* 
  * DS
@@ -311,16 +328,72 @@ void handle_mkdir(int sock)
 	/* Sending Response to Client */
 	send(sock, result, sizeof(int), 0);
 
+	/* Make System Call */
+	DIR *de
+	de = opendir(path);
+	
+    if (de == NULL)
+        return -errno;
+	
+	currentDirectory = de;
+	return 0;
 }
 
 void handle_releasedir(int sock)
 {
-	/* JONAS CODE HERE */
+	int res;
+	char[sizeof(int)] result;
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, @mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	/*
+	 *
+	 *
+	 * Not sure why a user would need to release a directory 
+	 *(unless we are supposed to lock it once the user opens the directory)
+	 * If so, we need a global linked list of directories currently opened
+	 * And we must ensure no other user has that directory opened before 
+	 * We allow the system call to proceed.
+	 * Also, where the user should be dropped off once he has released a DIR? 
+	 *
+	 *
+	 */
+
 }
 
 void handle_opendir(int sock)
 {
-	/* JONAS CODE HERE */
+	int res;
+	char[sizeof(int)] result;
+
+	/* Receive/Unmarshall Pathsize */
+	int pathsize;
+	recv(sock, &pathsize, sizeof(int), 0);
+	pathsize = ntohl(pathsize);
+
+	/* Receive/Unmarshall mode */
+	mode_t mode;
+	recv(sock, @mode, sizeof(mode_t), 0);
+	mode = ntohl(mode);
+
+	/* Receive Path */
+	char* path;
+	recv(sock, path, pathsize, 0);
+	
+	
+
 }
 
 /* 

@@ -73,7 +73,29 @@ static int my_getattr(const char* path, struct stat* stbuf)
 static int my_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 2;
-	/* JONAS CODE */
+	int pathsize = strlen(path) + 1;
+	
+	char data[sizeof(int)*2 + pathsize];
+
+	/* Marshalling Data */
+	memset(data, 0, sizeof(data));	
+	type = htonl(type);
+	memcpy(&data, &type, sizeof(int));
+	pathsize = htonl(pathsize);
+	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+	memcpy(&data + sizeof(int)*2, path, pathsize);
+	
+	/* Sending Data to Server */
+	send(sock, data, sizeof(data), 0);
+
+	
+	/* Receiving/Unmarshalling Response */
+	int result;
+	recv(sock, &result, sizeof(int), 0);
+	result = ntohl(result);
+	
+	/* Returning Value */
+	return result;
 }
 
 /* 
@@ -187,13 +209,63 @@ static int my_mkdir(const char* path, mode_t mode)
 static int my_releasedir(const char* path, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 8;
-	/* JONAS CODE */
+	int pathsize = strlen(path) + 1;
+	
+	/* Check that directory exists */
+	if (my_opendir(path, null, null, null, null) != 0)
+		return -1;
+	
+	char data[sizeof(int)*2 + pathsize];
+
+	/* Marshalling Data */
+	memset(data, 0, sizeof(data));	
+	type = htonl(type);
+	memcpy(&data, &type, sizeof(int));
+	pathsize = htonl(pathsize);
+	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+	memcpy(&data + sizeof(int)*2, path, pathsize);
+	
+	/* Sending Data to Server */
+	send(sock, data, sizeof(data), 0);
+
+	/* Receiving/Unmarshalling Response */
+	int result;
+	recv(sock, &result, sizeof(int), 0);
+	result = ntohl(result);
+	
+	/* Returning Value */
+	return result;
 }
 
 static int my_opendir(const char* path, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 9;
-	/* JONAS CODE */
+	int pathsize = strlen(path) + 1;
+	
+	/* Check that directory exists */
+	if (my_opendir(path, null, null, null, null) != 0)
+		return -1;
+	
+	char data[sizeof(int)*2 + pathsize];
+
+	/* Marshalling Data */
+	memset(data, 0, sizeof(data));	
+	type = htonl(type);
+	memcpy(&data, &type, sizeof(int));
+	pathsize = htonl(pathsize);
+	memcpy(&data + sizeof(int), &pathsize, sizeof(int));
+	memcpy(&data + sizeof(int)*2, path, pathsize);
+	
+	/* Sending Data to Server */
+	send(sock, data, sizeof(data), 0);
+
+	/* Receiving/Unmarshalling Response */
+	int result;
+	recv(sock, &result, sizeof(int), 0);
+	result = ntohl(result);
+	
+	/* Returning Value */
+	return result;
 }
 
 /* 
