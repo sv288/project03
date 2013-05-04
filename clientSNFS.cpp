@@ -70,6 +70,8 @@ static int my_getattr(const char* path, struct stat* stbuf)
 	return result;
 }
 
+// Only the first of these arguments are actually used. Could've named them all filler for all I care. 
+// Though my friend the Compiler might have something to say about that. He's a grumpy one. 
 static int my_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 2;
@@ -206,6 +208,7 @@ static int my_mkdir(const char* path, mode_t mode)
 	return result;
 }
 
+// Only returns -1 if the directory does not exist or the user is trying to release the mount directory. 
 static int my_releasedir(const char* path, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 8;
@@ -237,6 +240,7 @@ static int my_releasedir(const char* path, struct fuse_file_info* fileInfoStruct
 	return result;
 }
 
+// Only returns -1 if the directory doesn't exist.
 static int my_opendir(const char* path, struct fuse_file_info* fileInfoStruct)
 {
 	int type = 9;
@@ -331,14 +335,14 @@ static int my_close(const char* path)
 static struct my_operations : fuse_operations {
 	my_operations() {
 		getattr		= my_getattr;
-		//readdir		= my_readdir;
+		readdir		= my_readdir;
 		open		= my_open;
 		//read		= my_read;
 		//write		= my_write;
 		//create		= my_create;
 		mkdir		= my_mkdir;
-		//releasedir	= my_releasedir;
-		//opendir		= my_opendir;
+		releasedir	= my_releasedir;
+		opendir		= my_opendir;
 		truncate	= my_truncate;
 		close		=my_close;
 	}

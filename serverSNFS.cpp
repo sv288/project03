@@ -26,6 +26,8 @@
 using namespace std;
 
 DIR *currentDirectory; //This should be declared here because it is going to vary during runtime 
+DIR *previousDirectory; //A fallback directory to be used in the event that the user releases the directory he is currently in
+DIR *initialDirectory; //To prevent the user from releasing the mount directory
 int debug = 1;	 //if 1 it'll show output msgs surrounded by if(debug), for troubleshooting
 
 int main(int argc, char *argv[])
@@ -36,12 +38,25 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	
-
-	
 	int port = atoi(argv[1]);
 	std::string directory = argv[2];
 	std::cout << "\nPort number is: " << port << "\n";
 	std::cout << "Mount Directory is: " << directory << "\n\n";
+	
+	/*
+	 *
+	 * We should open the directory here. And I need to anyway in order to set up current, previous, and initial directories.
+	 * 
+	 */
+	DIR *de
+	de = opendir(directory);
+	if (de == null)
+		mkdir(directory, 0755);
+	
+	de = opendir(directory);
+	initialDirectory = de;
+	currentDirectory = de;
+	
 	if (port < 1024 || port > 65536)
 	{
 		std::cout << "Port number must be between 1024 and 65536\n";
@@ -123,14 +138,14 @@ void* request_handler(void* socket)
 	switch(i) 
 	{
 		case  1: handle_getattr(sock);
-		//case  2: handle_readdir(sock);
+		case  2: handle_readdir(sock);
 		case  3: handle_open(sock);
 		//case  4: handle_read(sock);
 		//case  5: handle_write(sock);
 		//case  6: handle_create(sock);
 		case  7: handle_mkdir(sock);
-		//case  8: handle_releasedir(sock);
-		//case  9: handle_opendir(sock);
+		case  8: handle_releasedir(sock);
+		case  9: handle_opendir(sock);
 		case 10: handle_truncate(sock);
 		case 11: handle_close(sock);
 	}
@@ -182,7 +197,7 @@ void handle_getattr(int sock)
 
 void handle_readdir(int sock)
 {
-	int res;
+	int res = 0;
 	char[sizeof(int)] result;
 
 	/* Receive/Unmarshall Pathsize */
@@ -200,13 +215,20 @@ void handle_readdir(int sock)
 	recv(sock, path, pathsize, 0);
 
 	/* Make System Call */
-	DIR *de
+	DIR *de;
 	de = opendir(path);
+
+	if(de == null)
+		res = -1;
 	
-    if (de == NULL)
-        return -errno;
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
 	
-	return 0;
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
+
+	return;
 }
 
 
@@ -329,19 +351,16 @@ void handle_mkdir(int sock)
 	send(sock, result, sizeof(int), 0);
 
 	/* Make System Call */
-	DIR *de
+	DIR *de;
 	de = opendir(path);
-	
-    if (de == NULL)
-        return -errno;
-	
+	previousDirectory = currentDirectory;
 	currentDirectory = de;
-	return 0;
+	
 }
 
 void handle_releasedir(int sock)
 {
-	int res;
+	int res = 0;
 	char[sizeof(int)] result;
 
 	/* Receive/Unmarshall Pathsize */
@@ -361,21 +380,32 @@ void handle_releasedir(int sock)
 	/*
 	 *
 	 *
-	 * Not sure why a user would need to release a directory 
-	 *(unless we are supposed to lock it once the user opens the directory)
-	 * If so, we need a global linked list of directories currently opened
-	 * And we must ensure no other user has that directory opened before 
-	 * We allow the system call to proceed.
-	 * Also, where the user should be dropped off once he has released a DIR? 
+	 * Not sure why a user would need to release a directory unless we are 
+	 * Supposed to lock it once the user opens the directory. If so, we need 
+	 * A global linked list of directories currently opened and we must ensure 
+	 * No other user has that directory opened before we allow this to proceed.
 	 *
 	 *
 	 */
+	
+	if (initialDirectory == currentDirectory)
+		res = -1;
+	
+	else
+		currentDirectory = previousDirectory;
+		
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
 
 }
 
 void handle_opendir(int sock)
 {
-	int res;
+	int res = 0;
 	char[sizeof(int)] result;
 
 	/* Receive/Unmarshall Pathsize */
@@ -392,7 +422,22 @@ void handle_opendir(int sock)
 	char* path;
 	recv(sock, path, pathsize, 0);
 	
+	/* Make System Call */
+	DIR *de
+	de = opendir(path);
 	
+	if(de == null)
+		res = -1;
+	currentDirectory = de;
+	
+	/* Marshalling Response to Client */
+	res = htonl(res);
+	memcpy(result, &res, sizeof(int));
+	
+	/* Sending Response to Client */
+	send(sock, result, sizeof(int), 0);
+
+	return;
 
 }
 
